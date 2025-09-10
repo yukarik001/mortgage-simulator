@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ローン結果画面（デモ版）</title>
+</head>
+<body>
+
+<h2>入力情報</h2>
+<p>借入（残）金額：<span th:text="${formattedamount}"></span>円</p><br/>
+返済（残）回数：<strong th:text="${rb.loanNo}"></strong><br/><br/>
+初回金利：<strong th:text="${rb.initialRate}"></strong>％<br/><br/>
+<h2>計算結果</h2>
+	<p>月次返済額（初回）：<span th:text="${formattedinitialPay}"></span>円</p>
+	<p>返済総額：<span th:text="${formattedsHensai}"></span>円</p>
+	<p>元金合計：<span th:text="${formattedsGankin}"></span>円</p>
+	<p>利息合計：<span th:text="${formattedsRisoku}"></span>円</p>
+<br/>
+
+<!--
+総返済額：<span th:text="${rb.sHensai}"></span>円<br/><br/>
+・うち元金部分（円）：<span th:text="${rb.sGankin}"></span>円<br/><br/>
+・うち利息部分（円）：<span th:text="${rb.sRisoku}"></span>円<br/><br/>
+-->
+
+<div th:if="${rb.interestChanges != null and #lists.size(rb.interestChanges) > 0}">
+  <h3>金利変動一覧</h3>
+  <table border="1">
+    <tr>
+      <th>回目</th>
+      <th>金利（％）</th>
+    </tr>
+    <tr th:each="ic : ${rb.interestChanges}">
+      <td th:text="${ic.month}">回目</td>
+      <td th:text="${ic.rate}">金利</td>
+    </tr>
+  </table>
+</div>
+<br/>
+
+<div th:if="${prepayments != null and #lists.size(prepayments) > 0}">
+  <h3>繰り上げ返済一覧</h3>
+  <table border="1">
+    <tr>
+      <th>回目</th>
+      <th>金額（万円）</th>
+    </tr>
+    <tr th:each="p : ${prepayments}">
+      <td th:text="${p.month}">回目</td>
+      <td th:text="${(p.amount / 10000)}">万円</td>
+    </tr>
+  </table>
+</div>
+
+<br/>
+<p class="notice">
+※この画面を長時間開いたままにすると、PDF出力ができなくなる場合があります。再度入力画面からやり直してください。
+</p>
+<form action="/pdf" method="get">
+<input type="hidden" name="loanTerm" th:value="${rb.loanTerm}" />
+<input type="hidden" name="loanAmount" th:value="${rb.loanAmount}" />
+<input type="hidden" name="loanNo" th:value="${rb.loanNo}" />
+<input type="hidden" name="initialRate" th:value="${rb.initialRate}" />
+<button type="submit">月別返済表の出力</button>
+</form>
+<!--　臨時措置：リセットボタンに変更(2025/09/10)
+<form action="/back" method="post">
+<input type="hidden" name="loanAmount" th:value="${rb.loanAmount}" />
+<input type="hidden" name="loanNo" th:value="${rb.loanNo}" />
+<input type="hidden" name="loanTerm" th:value="${rb.loanTerm}" />
+<input type="hidden" name="initialRate" th:value="${rb.initialRate}" />
+<button type="submit">戻る</button>
+</form>
+-->
+<form action="/clear" method="post">
+  <button type="submit">リセット</button>
+</form>
+
+</body>
+</html>

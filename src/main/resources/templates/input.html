@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>ローン条件入力画面（デモ版）</title>
+</head>
+<body>
+
+  <h2>ローン条件の入力</h2>
+
+  <form action="/calculate" method="post">
+    <label>借入金額（円）：</label>
+    <input type="number" name="loanAmount" th:value="${rb.loanAmount}" required><br/><br/>
+
+    <label>返済期間（年）：</label>
+    <input type="number" name="loanTerm" th:value="${rb.loanTerm}" required><br/><br/>
+
+    <label>または返済回数：</label>
+    <input type="number" name="loanNo" th:value="${rb.loanNo}"><br/><br/>
+	<h4>※返済途中の方は、残回数を入力してください。</h4>
+    
+	<label>初回金利（％）：</label>
+    <input type="number" step="0.01" name="initialRate" th:value="${rb.initialRate}" required><br/><br/>
+ 
+	<h4>５年ルール・125％ルールを適用しますか？（変動金利のみ）</h4>
+	<label>
+	  <input type="checkbox" name="rule" value="yes"> 適用する
+	</label><br/><br/>
+<br>
+		
+    <!-- 金利変動 -->
+    <div id="interestChanges">
+      <!-- JavaScriptで name="interestChanges[0].回目" のように生成 -->
+    </div>
+    <button type="button" onclick="addInterestChange()">＋金利変動を追加</button><br><br>
+
+    <!-- 繰り上げ返済 -->
+    <div id="prepayments">
+      <!-- JavaScriptで name="prepayments[0].回目" のように生成 -->
+    </div>
+    <button type="button" onclick="addPrepayment()">＋繰り上げ返済を追加</button><br><br>
+
+    <button type="submit">確認画面へ</button>
+  </form>
+  
+  <!--確認画面にクリアボタンを追加の処理(2025/09/10)-->
+  <form action="/clear" method="post" style="margin-top: 20px;">
+    <button type="submit">リセット</button>
+  </form>
+  
+
+  <script th:inline="javascript">
+  /*<![CDATA[*/
+    let interestChanges = [];
+    let prepayments = [];
+
+    let interestCount = 0;
+    let prepaymentCount = 0;
+
+    function addInterestChange() {
+      if (interestCount >= 10) return;
+      const div = document.createElement("div");
+      div.innerHTML = `回目: <input type="number" name="interestChanges[${interestCount}].month"> 金利（％）: <input type="number" step="0.01" name="interestChanges[${interestCount}].rate"><br>`;
+      document.getElementById("interestChanges").appendChild(div);
+      interestCount++;
+    }
+
+    function addPrepayment() {
+      if (prepaymentCount >= 10) return;
+      const div = document.createElement("div");
+      div.innerHTML = `回目: <input type="number" name="prepayments[${prepaymentCount}].month"> 返済額（円）: <input type="number" name="prepayments[${prepaymentCount}].amount"><br>`;
+      document.getElementById("prepayments").appendChild(div);
+      prepaymentCount++;
+    }
+  /*]]>*/
+  </script>
+</body>
+
+</html>
