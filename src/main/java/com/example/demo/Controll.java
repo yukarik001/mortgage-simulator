@@ -9,9 +9,6 @@ import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +19,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
+
+
 
 
 @Controller
@@ -44,14 +43,14 @@ return "input";
 
 @RequestMapping("/checkRule")
 @ResponseBody
-public String calculate(@RequestParam(value = "rule", required = false) String rule) {
+public String checkRulee(@RequestParam(value = "rule", required = false) String rule) {
 // チェックされていない場合は null → "no" に補正
 String result = (rule != null && rule.equals("yes")) ? "ルール適用" : "";
 return result;
 }
 @RequestMapping("/calculate")
-public ModelAndView calculate(@ModelAttribute RBean rb, ModelAndView m) {
-
+public ModelAndView calculate(@ModelAttribute RBean rb, ModelAndView m, HttpSession session) {
+	session.setAttribute("rb", rb);
     // 未入力対策：loanNoがnullなら年数×12に設定
     if (rb.getLoanNo() == null) {
         rb.setLoanNo(rb.getLoanTerm() * 12);
@@ -79,8 +78,9 @@ public ModelAndView calculate(@ModelAttribute RBean rb, ModelAndView m) {
 
     // その他のデータをViewに渡す
     m.addObject("rb", rb);
-    m.addObject("results", results);
-    m.setViewName("calculate");
+    m.addObject("monthlyResults", results); // ← これを追加
+    m.setViewName("confirm");
+
 
     return m;
 }
@@ -128,6 +128,39 @@ public String back(HttpSession session, Model model) {
 
 
 //PDF化
+//PDFはクライアント側で処理（確認画面のjavascript　2025/09/14)
+@GetMapping("/confirm")
+public String showConfirm(Model model,HttpSession session) {
+	RBean rb = (RBean) session.getAttribute("rb");
+    if (rb == null) {
+        logger.warn("セッションが切れているため、確認画面を表示できません");
+        return "redirect:/";
+    }
+
+    List<MonthlyResult> results = loanCalculatorService.calculate(rb);
+
+    // 🔍 ログでサイズを確認
+    logger.info("monthlyResults size: " + results.size());
+    System.out.println("monthlyResults size: " + results.size());
+    // 🔍 1件目の中身を確認（あれば）
+    if (!results.isEmpty()) {
+        MonthlyResult first = results.get(0);
+        logger.info("1件目: month=" + first.getMonth() + ", rate=" + first.getRate() +
+                    ", gaku=" + first.getGaku() + ", gan=" + first.getGan() +
+                    ", risoku=" + first.getRisoku() + ", zan=" + first.getZan());
+    }
+    for (MonthlyResult r : results) {
+        logger.info("月別結果: month=" + r.getMonth() + ", rate=" + r.getRate() +
+                    ", gaku=" + r.getGaku() + ", gan=" + r.getGan() +
+                    ", risoku=" + r.getRisoku() + ", zan=" + r.getZan());
+    }
+
+    model.addAttribute("rb", rb);
+    model.addAttribute("monthlyResults", results);
+    return "confirm";
+}
+
+/*
 @GetMapping("/pdf")
 public ResponseEntity<byte[]> exportPdf(HttpSession session) {
 	
@@ -147,4 +180,5 @@ return ResponseEntity.ok()
 
 
 	}
+*/
 }

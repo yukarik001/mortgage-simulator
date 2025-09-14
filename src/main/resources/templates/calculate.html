@@ -56,6 +56,8 @@
 <p class="notice">
 ※この画面を長時間開いたままにすると、PDF出力ができなくなる場合があります。再度入力画面からやり直してください。
 </p>
+<!-- (2025/09/14 修正 -->
+<!-- 
 <form action="/pdf" method="get">
 <input type="hidden" name="loanTerm" th:value="${rb.loanTerm}" />
 <input type="hidden" name="loanAmount" th:value="${rb.loanAmount}" />
@@ -63,6 +65,40 @@
 <input type="hidden" name="initialRate" th:value="${rb.initialRate}" />
 <button type="submit">月別返済表の出力</button>
 </form>
+-->
+
+<!-- (2025/09/14 修正 -->
+<!-- 旧：サーバーにリクエストを送る -->
+<!-- <form action="/pdf" method="post"> -->
+<!-- 新：JavaScriptでPDF生成 -->
+<!-- PDF出力ボタン -->
+<!-- PDF出力ボタン -->
+<button type="button" id="pdfBtn">月別返済予定PDF出力</button>
+
+<div id="pdfTarget">
+  <h2>月別返済予定表</h2>
+  <table border="1">
+    <tr>
+      <th>回目</th>
+      <th>金利（％）</th>
+      <th>返済額</th>
+      <th>元金</th>
+      <th>利息</th>
+      <th>残額</th>
+    </tr>
+    <tr th:each="mr : ${monthlyResults}">
+      <td th:text="${mr.month}"></td>
+      <td th:text="${mr.rate}"></td>
+      <td th:text="${mr.gaku}"></td>
+      <td th:text="${mr.gan}"></td>
+      <td th:text="${mr.risoku}"></td>
+      <td th:text="${mr.zan}"></td>
+    </tr>
+  </table>
+</div>
+
+
+
 <!--　臨時措置：リセットボタンに変更(2025/09/10)
 <form action="/back" method="post">
 <input type="hidden" name="loanAmount" th:value="${rb.loanAmount}" />

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ローン結果画面（デモ版）</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+	
+	<!-- PDF出力・リセットボタン（PDFには含めない） -->
+	<div style="margin: 20px 0;">
+	  <button type="button" id="pdfBtn">PDF出力</button>
+	  <form action="/clear" method="post" style="display: inline;">
+	    <button type="submit">リセット</button>
+	  </form>
+	</div>
+
+	<!-- PDF出力対象 -->
+	<div id="pdfTarget">
+	  <!-- 入力情報・計算結果・一覧表など -->
+			<h2>入力情報</h2>
+			借入（残）金額：<span th:text="${formattedamount}"></span>円<br/>
+			返済（残）回数：<strong th:text="${rb.loanNo}"></strong><br/><br/>
+			初回金利：<strong th:text="${rb.initialRate}"></strong>％<br/><br/>
+			<h2>計算結果</h2>
+				<p>月次返済額（初回）：<span th:text="${formattedinitialPay}"></span>円</p>
+				<p>返済総額：<span th:text="${formattedsHensai}"></span>円</p>
+				<p>元金合計：<span th:text="${formattedsGankin}"></span>円</p>
+				<p>利息合計：<span th:text="${formattedsRisoku}"></span>円</p>
+			<br/>  
+		
+		<div th:if="${rb.interestChanges != null and #lists.size(rb.interestChanges) > 0}">
+		  <h3>金利変動一覧</h3>
+		  <table border="1">
+		    <tr>
+		      <th>回目</th>
+		      <th>金利（％）</th>
+		    </tr>
+		    <tr th:each="ic : ${rb.interestChanges}">
+		      <td th:text="${ic.month}">回目</td>
+		      <td th:text="${ic.rate}">金利</td>
+		    </tr>
+		  </table>
+		</div>
+		<br/>
+
+		<div th:if="${prepayments != null and #lists.size(prepayments) > 0}">
+		  <h3>繰り上げ返済一覧</h3>
+		  <table border="1">
+		    <tr>
+		      <th>回目</th>
+		      <th>金額（万円）</th>
+		    </tr>
+		    <tr th:each="p : ${prepayments}">
+		      <td th:text="${p.month}">回目</td>
+		      <td th:text="${(p.amount / 10000)}">万円</td>
+		    </tr>
+		  </table>
+		</div>
+		
+		<!-- 月別返済予定表 -->
+		  <!-- 改ページ用の空白 一旦削除
+		  <div style="height: 300px;"></div>  A4縦の高さに近い -->
+
+
+	  <h2>月別返済予定表</h2>
+	  <table border="1">
+	    <tr>
+	      <th>回目</th>
+	      <th>金利（％）</th>
+	      <th>返済額</th>
+	      <th>元金</th>
+	      <th>利息</th>
+	      <th>残額</th>
+	    </tr>
+	    <tr th:each="mr : ${monthlyResults}">
+	      <td th:text="${mr.month}"></td>
+	      <td th:text="${mr.rate}"></td>
+	      <td th:text="${mr.gaku}"></td>
+	      <td th:text="${mr.gan}"></td>
+	      <td th:text="${mr.risoku}"></td>
+	      <td th:text="${mr.zan}"></td>
+	    </tr>
+	  </table>
+	 </div> 
+
+	
+	
+<!-- PDF生成スクリプト -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("pdfBtn");
+  const target = document.getElementById("pdfTarget");
+
+  if (!btn || !target) {
+    alert("PDF出力ボタンまたは対象が見つかりません");
+    return;
+  }
+
+  btn.addEventListener("click", function () {
+	const opt = {
+	  margin: 0.5,
+	  filename: 'repayment_schedule.pdf',
+	  image: { type: 'jpeg', quality: 0.98 },
+	  html2canvas: { scale: 1.5 },
+	  jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+	  pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+	};
+
+    html2pdf().set(opt).from(target).save();
+  });
+});
+</script>
+
+
+
+<!--　臨時措置：リセットボタンに変更(2025/09/10)
+<form action="/back" method="post">
+<input type="hidden" name="loanAmount" th:value="${rb.loanAmount}" />
+<input type="hidden" name="loanNo" th:value="${rb.loanNo}" />
+<input type="hidden" name="loanTerm" th:value="${rb.loanTerm}" />
+<input type="hidden" name="initialRate" th:value="${rb.initialRate}" />
+<button type="submit">戻る</button>
+</form>
+
+（ボタンを上部に移動　2025/09/14)
+<form action="/clear" method="post">
+  <button type="submit">リセット</button>
+</form>
+-->
+
+</body>
+</html>
