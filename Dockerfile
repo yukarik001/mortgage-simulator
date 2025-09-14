@@ -1,7 +1,5 @@
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
-COPY . .
-RUN chmod +x gradlew
-RUN ./gradlew build
-EXPOSE 8080
-CMD ["./gradlew", "bootRun"]
+COPY . /app
+RUN ./gradlew build --no-daemon
+CMD ["./gradlew", "bootRun", "--no-daemon"]
