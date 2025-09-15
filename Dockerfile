@@ -1,5 +1,5 @@
 # Build stage
-FROM gradle:8.0.2-jdk21 AS builder
+FROM gradle:8.5.0-jdk21 AS builder
 WORKDIR /app
 COPY . .
 RUN ./gradlew build --no-daemon
